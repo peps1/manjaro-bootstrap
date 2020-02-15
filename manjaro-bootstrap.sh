@@ -35,8 +35,8 @@ DEFAULT_BRANCH="unstable"
 # Read from config file is present to override variables
 [ -f config.sh ] && . config.sh
 
-stderr() { 
-  echo "$@" >&2 
+stderr() {
+  echo "$@" >&2
 }
 
 debug() {
@@ -63,17 +63,17 @@ fetch_file() {
 
 uncompress() {
   local FILEPATH=$1 DEST=$2
-  
+
   case "$FILEPATH" in
-    *.gz) 
+    *.gz)
       tar xzf "$FILEPATH" -C "$DEST";;
-    *.xz) 
+    *.xz)
       xz -dc "$FILEPATH" | tar x -C "$DEST";;
-    *) 
+    *)
       debug "Error: unknown package format: $FILEPATH"
       return 1;;
   esac
-}  
+}
 
 ###
 
@@ -114,19 +114,19 @@ configure_pacman() {
 
 configure_minimal_system() {
   local DEST=$1
-  
+
   mkdir -p "$DEST/dev"
   sed -ie 's/^root:.*$/root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi\/:14657::::::/' $DEST/etc/shadow
   touch "$DEST/etc/group"
   echo "bootstrap" > "$DEST/etc/hostname"
-  
+
   sed -i "s/^[[:space:]]*\(CheckSpace\)/# \1/" "$DEST/etc/pacman.conf"
   sed -i "s/^[[:space:]]*SigLevel[[:space:]]*=.*$/SigLevel = Never/" "$DEST/etc/pacman.conf"
 }
 
 fetch_packages_list() {
-  local REPO=$1 
-  
+  local REPO=$1
+
   debug "fetch packages list: $REPO/"
   fetch "$REPO/" | extract_href | awk -F"/" '{print $NF}' | sort -rn ||
     { debug "Error: cannot fetch packages list: $REPO"; return 1; }
@@ -135,12 +135,12 @@ fetch_packages_list() {
 install_pacman_packages() {
   local BASIC_PACKAGES=$1 DEST=$2 LIST=$3 DOWNLOAD_DIR=$4
   debug "pacman package and dependencies: $BASIC_PACKAGES"
-  
+
   for PACKAGE in $BASIC_PACKAGES; do
     local FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]].*\(\.gz\|\.xz\)$")
     test "$FILE" || { debug "Error: cannot find package: $PACKAGE"; return 1; }
     local FILEPATH="$DOWNLOAD_DIR/$FILE"
-    
+
     debug "download package: $REPO/$FILE"
     fetch_file "$FILEPATH" "$REPO/$FILE"
     debug "uncompress package: $FILEPATH"
@@ -176,7 +176,7 @@ main() {
   local USE_QEMU=
   local DOWNLOAD_DIR=
   local PRESERVE_DOWNLOAD_DIR=
-  
+
   while getopts "qa:r:d:h" ARG; do
     case "$ARG" in
       a) ARCH=$OPTARG;;
@@ -189,10 +189,10 @@ main() {
   done
   shift $(($OPTIND-1))
   test $# -eq 1 || { show_usage; return 1; }
-  
+
   [[ -z "$ARCH" ]] && ARCH=$(uname -m)
   [[ -z "$REPO_URL" ]] &&REPO_URL=$(get_default_repo "$ARCH")
-  
+
   local DEST=$1
   local REPO=$(get_core_repo_url "$REPO_URL" "$ARCH")
   [[ -z "$DOWNLOAD_DIR" ]] && DOWNLOAD_DIR=$(mktemp -d)
@@ -201,7 +201,7 @@ main() {
   debug "destination directory: $DEST"
   debug "core repository: $REPO"
   debug "temporary directory: $DOWNLOAD_DIR"
-  
+
   # Fetch packages, install system and do a minimal configuration
   mkdir -p "$DEST"
   local LIST=$(fetch_packages_list $REPO)
@@ -212,7 +212,7 @@ main() {
   install_packages "$ARCH" "$DEST" "${BASIC_PACKAGES[*]} ${EXTRA_PACKAGES[*]}"
   configure_pacman "$DEST" "$ARCH" # Pacman must be re-configured
   [[ -z "$PRESERVE_DOWNLOAD_DIR" ]] && rm -rf "$DOWNLOAD_DIR"
-  
+
   debug "Done"
   debug "Note: To use the system you may need to mount some special fileystems:"
   debug "  # mount -t proc proc $DEST/proc/"
