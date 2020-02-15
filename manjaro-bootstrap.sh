@@ -23,7 +23,7 @@ set -e -u -o pipefail
 # Packages needed by pacman (see get-pacman-dependencies.sh)
 PACMAN_PACKAGES=(
   acl manjaro-keyring attr bzip2 curl expat glibc gpgme libarchive
-  libassuan libgpg-error libnghttp2 libssh2 lzo openssl pacman pacman-mirrors xz zlib zstd
+  libassuan libgpg-error libnghttp2 libidn2 libssh2 libunistring lzo openssl pacman pacman-mirrors xz zlib zstd
   krb5 e2fsprogs keyutils libidn gcc-libs lz4 libpsl icu
 )
 BASIC_PACKAGES=(${PACMAN_PACKAGES[*]} filesystem)
