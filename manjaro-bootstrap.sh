@@ -22,15 +22,15 @@ set -e -u -o pipefail
 
 # Packages needed by pacman (see get-pacman-dependencies.sh)
 PACMAN_PACKAGES=(
-  acl archlinux-keyring attr bzip2 curl expat glibc gpgme libarchive
-  libassuan libgpg-error libnghttp2 libssh2 lzo openssl pacman pacman-mirrors xz zlib
+  acl manjaro-keyring attr bzip2 curl expat glibc gpgme libarchive
+  libassuan libgpg-error libnghttp2 libssh2 lzo openssl pacman pacman-mirrors xz zlib zstd
   krb5 e2fsprogs keyutils libidn gcc-libs lz4 libpsl icu
 )
 BASIC_PACKAGES=(${PACMAN_PACKAGES[*]} filesystem)
 EXTRA_PACKAGES=(coreutils bash grep gawk file tar sed manjaro-release)
-DEFAULT_REPO_URL="http://repo.manjaro.org.uk"
+DEFAULT_REPO_URL="http://manjaro.ynh.ovh"
 DEFAULT_ARM_REPO_URL="http://mirror.archlinuxarm.org"
-DEFAULT_BRANCH="unstable"
+DEFAULT_BRANCH="testing"
 
 # Read from config file is present to override variables
 [ -f config.sh ] && . config.sh
@@ -69,6 +69,8 @@ uncompress() {
       tar xzf "$FILEPATH" -C "$DEST";;
     *.xz)
       xz -dc "$FILEPATH" | tar x -C "$DEST";;
+    *.zst)
+      tar -I zstd -xf "$FILEPATH" -C "$DEST";;
     *)
       debug "Error: unknown package format: $FILEPATH"
       return 1;;
@@ -137,7 +139,7 @@ install_pacman_packages() {
   debug "pacman package and dependencies: $BASIC_PACKAGES"
 
   for PACKAGE in $BASIC_PACKAGES; do
-    local FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]].*\(\.gz\|\.xz\)$")
+    local FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]].*\(\.gz\|\.xz\|\.zst\)$")
     test "$FILE" || { debug "Error: cannot find package: $PACKAGE"; return 1; }
     local FILEPATH="$DOWNLOAD_DIR/$FILE"
 
